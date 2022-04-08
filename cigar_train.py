@@ -21,7 +21,12 @@ import optax
 from functools import partial
 from jax import grad, jit, vmap, jacfwd
 import seaborn as sns
-sns.set()
+
+
+-----# The actual code starts from line 346. This is my current code for running experiments, so is WIP -----
+
+
+############ Defining functions ################
 
 
 def save_checkpoint(state, filename='checkpoint1.tar'):
@@ -337,6 +342,11 @@ initial_point_sampler = partial(cigar_simple_initial,n=1000)
 
 
 
+
+########### The actual code ###############
+
+
+
 seed = int(time.time())  # 42
 print(seed)
 rng = jax.random.PRNGKey(seed)
@@ -375,6 +385,17 @@ print(time.time()-t0)
 
 #jnp.save('params' , params)
 #jnp.save('opt_state',opt_state)
+
+
+
+
+
+
+
+
+############### Just some random plots ################
+
+
 
 seed = int(3)  #time.time())  # 42
 key = jax.random.PRNGKey(seed)
