@@ -116,7 +116,7 @@ def inverse_metric_matrix(p, params, metric_out):
     g = get_metric(p, params, metric_out)
     return jnp.linalg.inv(g)
 
-def dgdt(p,params,metric_out):
+def dgdt_finder(p,params,metric_out):
     derivatives = jacfwd(get_metric, argnums=0)(p, params, metric_out)  # [..., i,j,l]
     g_t = derivatives[:,:,0]
     return g_t
@@ -170,7 +170,7 @@ def grad_ricci_scalar(p,params,metric_out):
 
 def residual_loss(p, params,metric_out,key):
   key1, key2 = jax.random.split(key)
-  dgdt = vmap(dgdt, in_axes=(0,None,None))(p, params, metric_out)
+  dgdt = vmap(dgdt_finder, in_axes=(0,None,None))(p, params, metric_out)
   ricci = vmap(ricci_tensor , in_axes=(0,None,None))(p,params,metric_out)
   time = p[:,0]
   g = vmap(get_metric, in_axes=(0, None, None))(p, params, metric_out)
@@ -377,8 +377,8 @@ optimizer = optax.adam(learning_rate = 3e-4)
 model_g = LearnedMetric(3)
 params, opt_state, init_rng = create_train_state(init_rng, model_g,  optimizer)
 
-params = pickle.load(open('torus_metric.pkl','rb'))
-opt_state = pickle.load(open('torus_metric_norm.pkl','rb'))
+params = pickle.load(open('param_norm.pkl','rb'))
+opt_state = pickle.load(open('opt_state_norm.pkl','rb'))
 
 """
 vol_arr = []
@@ -402,7 +402,7 @@ plt.show()
 
 hist = []
 t0 = time.time()
-for t in range(int(3500)):
+for t in range(int(1)):
   if t % 20 == 0:
     print('time:',time.time()-t0)
     print(f'Iteration {t} =====>>>')
@@ -410,9 +410,9 @@ for t in range(int(3500)):
   Data_r = collocation_point_sampler(key = sample_rng_col)
   Data_i = initial_point_sampler(key = sample_rng_initial)
   (params, opt_state) = train_metric_g(params,opt_state, optimizer, Data_r,Data_i,t,hist,data_key)
-  if t%20 == 0:
-    pickle.dump(params, open('torus_metric.pkl','wb'))
-    pickle.dump(opt_state, open('torus_metric_norm.pkl','wb'))
+  #if t%20 == 0:
+    #pickle.dump(params, open('torus_metric.pkl','wb'))
+    #pickle.dump(opt_state, open('torus_metric_norm.pkl','wb'))
 
 
 
@@ -468,6 +468,13 @@ r20= vmap(ricci_scalar , in_axes=(0,None,None))(test_data20,params,metric_matrix
 r21= vmap(ricci_scalar , in_axes=(0,None,None))(test_data21,params,metric_matrix)
 
 #r0 = ricci_scalar(test_data0 , params, metric_matrix)
+
+
+exact_r = (2*jnp.cos(phi))/(2+jnp.cos(phi))
+for i in range(10):
+    plt.plot(phi,0.1*i*exact_r,'.',label = f'exact {i*0.1}')
+
+
 
 
 plt.plot(test_data0[:,2],r0,'.',label = 't=0')
